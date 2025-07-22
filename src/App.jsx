@@ -1,74 +1,55 @@
-import { useState, useEffect } from "react";
-import "./styles/index.css";
+import React, { useEffect, useState } from "react";
+import "./styles/index.css"; // Ensure this file exists
 
 function App() {
-  const [darkMode, setDarkMode] = useState(false);
+  const [data, setData] = useState(null);
   const [mode, setMode] = useState("historical");
-  const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-    document.documentElement.classList.toggle("dark", !darkMode);
-  };
-
-  const toggleMode = () => {
-    const newMode = mode === "historical" ? "live" : "historical";
-    setMode(newMode);
-  };
-
   useEffect(() => {
-    document.documentElement.classList.toggle("dark", darkMode);
-  }, [darkMode]);
-
-  const fetchSimulation = async () => {
     setLoading(true);
-    try {
-      const res = await fetch(`https://harambeecore-cloud-1.onrender.com/simulate?mode=${mode}`);
-      const data = await res.json();
-      setResult(data);
-    } catch (err) {
-      setResult({ error: "Failed to fetch simulation." });
-    } finally {
-      setLoading(false);
-    }
-  };
+    fetch(`https://harambeecore-cloud-1.onrender.com/simulate?mode=${mode}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setData(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("API error:", err);
+        setLoading(false);
+      });
+  }, [mode]);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">HarambeeCore Simulator</h1>
+    <div className="min-h-screen p-4 bg-gray-100 text-gray-800">
+      <h1 className="text-2xl font-bold mb-4">HarambeeCore Dashboard</h1>
+
+      <div className="flex gap-4 mb-6">
         <button
-          onClick={toggleDarkMode}
-          className="bg-gray-200 dark:bg-gray-700 px-4 py-2 rounded shadow"
+          onClick={() => setMode("historical")}
+          className={`px-4 py-2 rounded ${
+            mode === "historical" ? "bg-blue-600 text-white" : "bg-white border"
+          }`}
         >
-          {darkMode ? "☀️ Light Mode" : "🌙 Dark Mode"}
+          Historical
+        </button>
+        <button
+          onClick={() => setMode("live")}
+          className={`px-4 py-2 rounded ${
+            mode === "live" ? "bg-blue-600 text-white" : "bg-white border"
+          }`}
+        >
+          Live
         </button>
       </div>
 
-      <div className="mb-6">
-        <button
-          onClick={toggleMode}
-          className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded"
-        >
-          Switch to {mode === "historical" ? "Live" : "Historical"} Mode
-        </button>
-      </div>
-
-      <div className="mb-6">
-        <button
-          onClick={fetchSimulation}
-          className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded"
-        >
-          Run Simulation
-        </button>
-      </div>
-
-      {loading && <p>Loading...</p>}
-
-      {result && (
-        <pre className="bg-gray-100 dark:bg-gray-800 p-4 rounded text-sm overflow-auto">
-          {JSON.stringify(result, null, 2)}
+      {loading ? (
+        <p>Loading...</p>
+      ) : data?.error ? (
+        <pre className="text-red-600">{data.error}</pre>
+      ) : (
+        <pre className="bg-white p-4 rounded shadow overflow-auto text-sm">
+          {JSON.stringify(data, null, 2)}
         </pre>
       )}
     </div>
