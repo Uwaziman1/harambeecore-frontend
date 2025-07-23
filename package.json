@@ -16,7 +16,6 @@
     "@tailwindcss/forms": "^0.5.7",
     "@tailwindcss/typography": "^0.5.10",
     "@tanstack/react-query": "^5.25.3",
-    "autoprefixer": "^10.4.19",
     "axios": "^1.6.8",
     "classnames": "^2.5.1",
     "framer-motion": "^11.0.17",
@@ -26,12 +25,13 @@
     "react-dom": "^18.2.0",
     "tailwind-variants": "^0.1.1",
     "tailwindcss": "^3.4.3",
-    "typescript": "^5.4.5",
-    "vite": "^5.2.10",
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "vite": "^5.2.10",
+    "typescript": "^5.4.5",
     "@types/react": "^18.2.76",
-    "@types/react-dom": "^18.2.19"
+    "@types/react-dom": "^18.2.19",
+    "autoprefixer": "^10.4.19"
   }
 }
