@@ -8,17 +8,30 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
+    "@headlessui/react": "^1.7.20",
+    "@radix-ui/react-slot": "^1.0.2",
+    "@shadcn/ui": "^0.3.4",
+    "@tailwindcss/forms": "^0.5.7",
+    "@tailwindcss/typography": "^0.5.10",
+    "@tanstack/react-query": "^5.25.3",
+    "autoprefixer": "^10.4.19",
     "axios": "^1.6.8",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "classnames": "^2.5.1",
+    "framer-motion": "^11.0.17",
+    "lucide-react": "^0.365.0",
+    "postcss": "^8.4.38",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "tailwind-variants": "^0.1.1",
+    "tailwindcss": "^3.4.3",
+    "typescript": "^5.4.5",
+    "vite": "^5.2.10",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
-  "@vitejs/plugin-react": "^4.0.0",
-  "vite": "^7.0.5",
-  "tailwindcss": "^3.4.1",
-  "postcss": "^8.4.21",
-  "autoprefixer": "^10.4.14"
-}
-
+    "@types/react": "^18.2.76",
+    "@types/react-dom": "^18.2.19"
   }
-
+}
