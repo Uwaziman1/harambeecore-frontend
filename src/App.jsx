@@ -1,60 +1,58 @@
-// src/App.jsx
-import { useState } from "react";
-import axios from "axios";
+import React, { useState } from "react";
 
-function App() {
+function SimulationRunner() {
   const [mode, setMode] = useState("historic");
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const handleToggle = () => {
-    setMode((prev) => (prev === "historic" ? "live" : "historic"));
-  };
-
-  const runPipeline = async () => {
+  const runSimulation = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`http://localhost:8000/run?mode=${mode}`);
-      setResult(res.data);
-    } catch (err) {
-      console.error(err);
-      setResult({ error: "Failed to connect to backend." });
+      const response = await fetch(`https://harambeecore-cloud-1.onrender.com/run?mode=${mode}`);
+      
+      // Optional: log raw response
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`API Error ${response.status}: ${errorText}`);
+      }
+
+      const data = await response.json();
+      setResult(data);
+      console.log("Pipeline result:", data);
+    } catch (error) {
+      console.error("Simulation error:", error.message);
+      setResult({ error: error.message });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4">
-      <h1 className="text-3xl font-bold mb-4">HarambeeCore Pipeline</h1>
-
-      <div className="flex items-center space-x-4 mb-6">
-        <span className="font-medium">Mode:</span>
-        <button
-          className={`px-4 py-2 rounded-full font-semibold ${
-            mode === "historic" ? "bg-blue-500 text-white" : "bg-gray-300 text-black"
-          }`}
-          onClick={handleToggle}
-        >
-          {mode === "historic" ? "Historic" : "Live"}
-        </button>
-      </div>
-
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-4">Run HarambeeCore Pipeline</h1>
+      <select
+        value={mode}
+        onChange={(e) => setMode(e.target.value)}
+        className="border rounded p-2 mb-4"
+      >
+        <option value="historic">Historic</option>
+        <option value="live">Live</option>
+      </select>
       <button
-        onClick={runPipeline}
-        className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded mb-6"
+        onClick={runSimulation}
+        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
         disabled={loading}
       >
-        {loading ? "Running..." : "Run Pipeline"}
+        {loading ? "Running..." : "Run Simulation"}
       </button>
 
       {result && (
-        <div className="w-full max-w-xl bg-white shadow p-4 rounded border">
-          <pre className="text-sm whitespace-pre-wrap">{JSON.stringify(result, null, 2)}</pre>
-        </div>
+        <pre className="mt-6 bg-gray-100 p-4 rounded text-sm overflow-x-auto">
+          {JSON.stringify(result, null, 2)}
+        </pre>
       )}
     </div>
   );
 }
 
-export default App;
+export default SimulationRunner;
