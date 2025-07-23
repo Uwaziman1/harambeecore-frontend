@@ -1,3 +1,4 @@
+// src/App.jsx
 import "../styles/index.css";
 import React, { useState } from "react";
 
@@ -12,10 +13,8 @@ function App() {
     setError(null);
     setResult(null);
 
-    const apiUrl = import.meta.env.VITE_API_URL;
-
     try {
-      const response = await fetch(`${apiUrl}/simulate?mode=${mode}`);
+      const response = await fetch(`https://harambeecore-cloud-1.onrender.com/simulate?mode=${mode}`);
       const data = await response.json();
 
       if (response.ok) {
