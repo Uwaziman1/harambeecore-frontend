@@ -1,62 +1,57 @@
-import React, { useEffect, useState } from "react";
-import "./App.css";
+// src/App.jsx
+import { useState } from "react";
+import axios from "axios";
 
 function App() {
-  const [data, setData] = useState([]);
-  const [mode, setMode] = useState("historical");
+  const [mode, setMode] = useState("historic");
+  const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
 
-  const fetchData = async () => {
+  const handleToggle = () => {
+    setMode((prev) => (prev === "historic" ? "live" : "historic"));
+  };
+
+  const runPipeline = async () => {
     setLoading(true);
-    setError(null);
-
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/simulate?mode=${mode}`
-      );
-
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
-      }
-
-      const result = await response.json();
-      setData(result.milestones || []);
+      const res = await axios.get(`http://localhost:8000/run?mode=${mode}`);
+      setResult(res.data);
     } catch (err) {
       console.error(err);
-      setError("Failed to fetch simulation data.");
+      setResult({ error: "Failed to connect to backend." });
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchData();
-  }, [mode]);
-
   return (
-    <div className="App">
-      <h1>Pipeline Simulation</h1>
+    <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4">
+      <h1 className="text-3xl font-bold mb-4">HarambeeCore Pipeline</h1>
 
-      <div>
-        <label>Mode: </label>
-        <select value={mode} onChange={(e) => setMode(e.target.value)}>
-          <option value="historical">Historical</option>
-          <option value="live">Live</option>
-        </select>
+      <div className="flex items-center space-x-4 mb-6">
+        <span className="font-medium">Mode:</span>
+        <button
+          className={`px-4 py-2 rounded-full font-semibold ${
+            mode === "historic" ? "bg-blue-500 text-white" : "bg-gray-300 text-black"
+          }`}
+          onClick={handleToggle}
+        >
+          {mode === "historic" ? "Historic" : "Live"}
+        </button>
       </div>
 
-      {loading && <p>Loading simulation...</p>}
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      <button
+        onClick={runPipeline}
+        className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded mb-6"
+        disabled={loading}
+      >
+        {loading ? "Running..." : "Run Pipeline"}
+      </button>
 
-      {!loading && !error && (
-        <ul>
-          {data.map((milestone, index) => (
-            <li key={index}>
-              <strong>{milestone.name}</strong>: ${milestone.price}
-            </li>
-          ))}
-        </ul>
+      {result && (
+        <div className="w-full max-w-xl bg-white shadow p-4 rounded border">
+          <pre className="text-sm whitespace-pre-wrap">{JSON.stringify(result, null, 2)}</pre>
+        </div>
       )}
     </div>
   );
