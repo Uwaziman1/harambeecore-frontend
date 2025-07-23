@@ -1,75 +1,63 @@
-// src/App.jsx
-import "../styles/index.css";
-import React, { useState } from "react";
-
-const apiBaseUrl = import.meta.env.VITE_API_URL;
+import React, { useEffect, useState } from "react";
+import "./App.css";
 
 function App() {
+  const [data, setData] = useState([]);
   const [mode, setMode] = useState("historical");
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
 
-  const runSimulation = async () => {
+  const fetchData = async () => {
     setLoading(true);
     setError(null);
-    setResult(null);
 
     try {
-      const response = await fetch(`${apiBaseUrl}/simulate?mode=${mode}`);
-      const data = await response.json();
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/simulate?mode=${mode}`
+      );
 
-      if (response.ok) {
-        setResult(data);
-      } else {
-        setError(data.error || "An error occurred");
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
       }
+
+      const result = await response.json();
+      setData(result.milestones || []);
     } catch (err) {
-      setError("Failed to connect to API");
+      console.error(err);
+      setError("Failed to fetch simulation data.");
     } finally {
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+    fetchData();
+  }, [mode]);
+
   return (
-    <div className="min-h-screen bg-gray-100 text-gray-900 p-6">
-      <div className="max-w-2xl mx-auto bg-white shadow-md rounded-lg p-6">
-        <h1 className="text-2xl font-bold mb-4">HarambeeCore Simulation</h1>
+    <div className="App">
+      <h1>Pipeline Simulation</h1>
 
-        <div className="mb-4">
-          <label className="mr-4 font-semibold">Select Mode:</label>
-          <select
-            value={mode}
-            onChange={(e) => setMode(e.target.value)}
-            className="border p-2 rounded"
-          >
-            <option value="historical">Historical</option>
-            <option value="live">Live</option>
-          </select>
-        </div>
-
-        <button
-          onClick={runSimulation}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
-        >
-          {loading ? "Running..." : "Run Simulation"}
-        </button>
-
-        <div className="mt-6">
-          {error && (
-            <div className="text-red-600 font-semibold">Error: {error}</div>
-          )}
-
-          {result && (
-            <div>
-              <h2 className="text-lg font-bold mt-4 mb-2">Result:</h2>
-              <pre className="bg-gray-100 p-4 rounded overflow-auto text-sm max-h-[400px]">
-                {JSON.stringify(result, null, 2)}
-              </pre>
-            </div>
-          )}
-        </div>
+      <div>
+        <label>Mode: </label>
+        <select value={mode} onChange={(e) => setMode(e.target.value)}>
+          <option value="historical">Historical</option>
+          <option value="live">Live</option>
+        </select>
       </div>
+
+      {loading && <p>Loading simulation...</p>}
+      {error && <p style={{ color: "red" }}>{error}</p>}
+
+      {!loading && !error && (
+        <ul>
+          {data.map((milestone, index) => (
+            <li key={index}>
+              <strong>{milestone.name}</strong>: ${milestone.price}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
