@@ -1,175 +1,54 @@
 // src/App.jsx
-import React, { useState, useEffect } from "react";
-import {
-  fetchContracts,
-  fetchMilestones,
-  runSimulation,
-} from "./api";
+
+import { useEffect, useState } from "react";
+import { fetchAnalysis } from "./api";
 
 function App() {
-  const [mode, setMode] = useState("historic");
-  const [simulationResult, setSimulationResult] = useState(null);
-  const [contracts, setContracts] = useState([]);
-  const [milestones, setMilestones] = useState([]);
-  const [activeTab, setActiveTab] = useState("contracts");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-
-  const handleRunSimulation = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await runSimulation(mode);
-      setSimulationResult(res.data);
-    } catch (err) {
-      setError(err.message);
-      setSimulationResult(null);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadContracts = async () => {
-    try {
-      const res = await fetchContracts();
-      setContracts(res.data);
-    } catch (err) {
-      console.error("Contracts fetch failed:", err.message);
-    }
-  };
-
-  const loadMilestones = async () => {
-    try {
-      const res = await fetchMilestones();
-      setMilestones(res.data);
-    } catch (err) {
-      console.error("Milestones fetch failed:", err.message);
-    }
-  };
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadContracts();
-    loadMilestones();
+    const getData = async () => {
+      const result = await fetchAnalysis();
+      setData(result);
+      setLoading(false);
+    };
+
+    getData();
   }, []);
 
+  if (loading) return <div className="p-4 text-xl">Loading...</div>;
+
+  if (!data) return <div className="p-4 text-red-500">Failed to load data.</div>;
+
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">HarambeeCore Dashboard</h1>
+    <div className="p-6 space-y-4">
+      <h1 className="text-2xl font-bold text-gray-800">📊 XAU/USD Analysis</h1>
 
-      {/* Simulation Runner */}
-      <div className="mb-6">
-        <label className="mr-2">Mode:</label>
-        <select
-          value={mode}
-          onChange={(e) => setMode(e.target.value)}
-          className="border rounded p-2 mr-2"
-        >
-          <option value="historic">Historic</option>
-          <option value="live">Live</option>
-        </select>
-        <button
-          onClick={handleRunSimulation}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          disabled={loading}
-        >
-          {loading ? "Running..." : "Run Simulation"}
-        </button>
-      </div>
+      <section>
+        <h2 className="text-xl font-semibold text-blue-600">Contracts</h2>
+        <ul className="list-disc ml-5">
+          {data.contracts.map((contract, idx) => (
+            <li key={idx}>{contract}</li>
+          ))}
+        </ul>
+      </section>
 
-      {error && (
-        <div className="text-red-600 mb-4">Error: {error}</div>
-      )}
+      <section>
+        <h2 className="text-xl font-semibold text-green-600">Payments</h2>
+        <ul className="list-disc ml-5">
+          {data.payments.map((payment, idx) => (
+            <li key={idx}>{payment}</li>
+          ))}
+        </ul>
+      </section>
 
-      {simulationResult && (
-        <pre className="bg-gray-100 p-4 rounded mb-6 text-sm overflow-x-auto">
-          {JSON.stringify(simulationResult, null, 2)}
+      <section>
+        <h2 className="text-xl font-semibold text-purple-600">Summary</h2>
+        <pre className="bg-gray-100 p-3 rounded text-sm text-gray-800 whitespace-pre-wrap">
+          {JSON.stringify(data.summary, null, 2)}
         </pre>
-      )}
-
-      {/* Tabs */}
-      <div className="mb-4 flex gap-4">
-        <button
-          className={`px-4 py-2 rounded ${
-            activeTab === "contracts"
-              ? "bg-blue-500 text-white"
-              : "bg-gray-200"
-          }`}
-          onClick={() => setActiveTab("contracts")}
-        >
-          Contracts
-        </button>
-        <button
-          className={`px-4 py-2 rounded ${
-            activeTab === "milestones"
-              ? "bg-blue-500 text-white"
-              : "bg-gray-200"
-          }`}
-          onClick={() => setActiveTab("milestones")}
-        >
-          Milestones
-        </button>
-      </div>
-
-      {/* Tab content */}
-      <div className="overflow-x-auto">
-        {activeTab === "contracts" && (
-          <table className="min-w-full bg-white border rounded">
-            <thead>
-              <tr>
-                {contracts.length > 0 &&
-                  Object.keys(contracts[0]).map((key) => (
-                    <th
-                      key={key}
-                      className="border px-4 py-2 text-left bg-gray-100"
-                    >
-                      {key}
-                    </th>
-                  ))}
-              </tr>
-            </thead>
-            <tbody>
-              {contracts.map((contract, idx) => (
-                <tr key={idx}>
-                  {Object.values(contract).map((value, i) => (
-                    <td key={i} className="border px-4 py-2">
-                      {String(value)}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-
-        {activeTab === "milestones" && (
-          <table className="min-w-full bg-white border rounded">
-            <thead>
-              <tr>
-                {milestones.length > 0 &&
-                  Object.keys(milestones[0]).map((key) => (
-                    <th
-                      key={key}
-                      className="border px-4 py-2 text-left bg-gray-100"
-                    >
-                      {key}
-                    </th>
-                  ))}
-              </tr>
-            </thead>
-            <tbody>
-              {milestones.map((milestone, idx) => (
-                <tr key={idx}>
-                  {Object.values(milestone).map((value, i) => (
-                    <td key={i} className="border px-4 py-2">
-                      {String(value)}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+      </section>
     </div>
   );
 }
